@@ -1,4 +1,4 @@
-const config = require('../galnet-news-discord-bot-config.json');
+const config = require('./galnet-news-discord-bot-config.json');
 const Discord = require('discord.js');
 
 const client = new Discord.Client();

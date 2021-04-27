@@ -1,4 +1,4 @@
-const config = require('../galnet-news-discord-bot-config.json');
+const config = require('./galnet-news-discord-bot-config.json');
 const { version, author, license } = require('./package.json');
 const fs = require('fs');
 const Discord = require('discord.js');
@@ -58,7 +58,7 @@ const ED_COMMUNITY_URL = 'https://community.' + ED_DOMAIN + '/';
 const ED_NODE_URL_PREFIX = ED_BACKEND_URL + 'node/';
 const GNN_ARTICLE_URL_PREFIX = ED_FRONTEND_URL + 'news/galnet/article/';
 const GNN_ARTICLE_IMG_URL_PREFIX = 'https://hosting.zaonce.net/elite-dangerous/galnet/';
-const GNN_ARCHIVE_URL_PREFIX = ED_COMMUNITY_URL + 'galnet/uid/';
+const GNN_ARCHIVE_URL_PREFIX = ED_COMMUNITY_URL + 'de/galnet/uid/';
 const GNN_RSS_URL = ED_BACKEND_URL + 'galnet.rss';
 const GNN_JSON_URL = ED_BACKEND_URL + 'api/galnet' + IN_JSON_FORMAT;
 const BOT_IMAGES_URL_PREFIX = 'https://raw.githubusercontent.com/TheAlienDrew/galnet-news-discord-bot/main/images/'
@@ -72,6 +72,11 @@ const REAL_TO_GAME_YEAR_DIFF = 1286;
 const GAME_START_YEAR = 3300;
 const FEED_INTERVAL_SPEED = 60000; // 1 minute in milliseconds
 const ALL_POST_DELAY = 1500; // 1.5 seconds in milliseconds
+
+const ED_JSON_GN_API_URL_PREFIX = "jsonapi/node/galnet_article";
+const ED_JSON_API_URL_PREFIX = "jsonapi/node/galnet_article_international";
+const FILTER_FIELD_GALNET_GUID = "?filter[field_galnet_guid]=";
+const FILTER_FIELD_GALNET_NID = "?filter[drupal_internal__nid]=";
 
 const ITALIC = '<i>';
 const BOLD = '<b>';
@@ -526,11 +531,25 @@ function setPrefix(msg, prefix) {
 // BOT FUNCTIONS
 
 // sends and formats article post to discord, or to the feed channel if msg is null
-function createArticlePost(msg, post) {
+async function createArticlePost(msg, post) {
+
+    //NEU >>>>>
+    let postNIDFormat = await fetch(ED_BACKEND_URL + ED_JSON_GN_API_URL_PREFIX + FILTER_FIELD_GALNET_NID + post.nid);
+    postNIDJson = await postNIDFormat.json();
+    postGUIDstring = postNIDJson.data[0].attributes.field_galnet_guid.toString().slice(0, -2) + "de";
+    let postGuidFormat = await fetch(ED_BACKEND_URL + ED_JSON_API_URL_PREFIX + FILTER_FIELD_GALNET_GUID + postGUIDstring);
+    console.log(ED_BACKEND_URL + ED_JSON_API_URL_PREFIX + FILTER_FIELD_GALNET_GUID + postGUIDstring);
+    postGuidJson = await postGuidFormat.json();
+    console.log(postGuidJson);
+    post = postGuidJson.data[0].attributes;
+
+    console.log(post);
+    //>>>>NEU
+
     let serverId = msg ? (msg.guild ? msg.guild.id : null) : null;
     // get the right and formatted information for title and body
     let title = (post.title.replace(/\s/g,'').length > 0) ? htmlToText(post.title, {wordwrap: null}).replace(/\r/g,'').trim() : null;
-    let body = htmlToText(post.body.replace(/\r?\n|\r/g,''), HTML_TO_TEXT).trim();
+    let body = htmlToText(post.body.processed.replace(/\r?\n|\r/g,''), HTML_TO_TEXT).trim();//.valuze oder .processed??
     let sentences = body.split('\n');
     // sometimes the title is in the body
     if (!title) {
@@ -548,7 +567,7 @@ function createArticlePost(msg, post) {
 
     (async () => {
         // include the archive link (nice purpose for cases where articles have same slug article link)
-        let postNodeLink = ED_NODE_URL_PREFIX + post.nid;
+        let postNodeLink = ED_NODE_URL_PREFIX + post.drupal_internal__nid;
         let postNodeDataJSON = await fetch(postNodeLink + IN_JSON_FORMAT);
         let postNodeData = await postNodeDataJSON.json();
         let postLangCode = 'en'; // postNodeData.langcode[0].value; <-- this never changes no matter the lang change of the article
@@ -694,6 +713,7 @@ async function fetchGnnArticles() {
     // sadly need to sort all the posts first
     let allNews = await allNewsJSON.json();
     allNews.sort((a, b) => (new Date(b.date)) - (new Date(a.date)));
+
     // then need to remove posts that have no description
     for (let testBodyIndex = allNews.length - 1; testBodyIndex >= 0; testBodyIndex--) {
         if (allNews[testBodyIndex].body.trim() == '') allNews.splice(testBodyIndex, 1);
@@ -708,6 +728,12 @@ function getGnnTopPost(msg) {
         let allNews = await fetchGnnArticles();
 
         let post = allNews[0];
+
+        //console.log(ED_BACKEND_URL + ED_JSON_GN_API_URL_PREFIX + FILTER_FIELD_GALNET_NID + post.nid);
+
+        //let postCorrectFormat = await fetch(ED_BACKEND_URL + ED_JSON_GN_API_URL_PREFIX + FILTER_FIELD_GALNET_NID + post.nid);
+        //postJson = await postCorrectFormat.json();
+        //console.log(postJson.data[0].attributes.title);
 
         // post new article to channel or feed channel if it was a feed
         createArticlePost(msg, post);
