@@ -538,12 +538,12 @@ async function createArticlePost(msg, post) {
     postNIDJson = await postNIDFormat.json();
     postGUIDstring = postNIDJson.data[0].attributes.field_galnet_guid.toString().slice(0, -2) + "de";
     let postGuidFormat = await fetch(ED_BACKEND_URL + ED_JSON_API_URL_PREFIX + FILTER_FIELD_GALNET_GUID + postGUIDstring);
-    console.log(ED_BACKEND_URL + ED_JSON_API_URL_PREFIX + FILTER_FIELD_GALNET_GUID + postGUIDstring);
+    //console.log(ED_BACKEND_URL + ED_JSON_API_URL_PREFIX + FILTER_FIELD_GALNET_GUID + postGUIDstring);
     postGuidJson = await postGuidFormat.json();
-    console.log(postGuidJson);
+    //console.log(postGuidJson);
     post = postGuidJson.data[0].attributes;
 
-    console.log(post);
+    console.log(post.field_galnet_image);
     //>>>>NEU
 
     let serverId = msg ? (msg.guild ? msg.guild.id : null) : null;
@@ -587,8 +587,8 @@ async function createArticlePost(msg, post) {
         // conditionally set image if there is one, else use a specific image
         let imageToCheck;
         let imageExists = true;
-        if (post.image && post.image.indexOf(',') != 0) {
-            let images = post.image.replace(/^,+/, '').split(',');
+        if (post.field_galnet_image && post.field_galnet_image.indexOf(',') != 0) {//.image -> field_galnet_image
+            let images = post.field_galnet_image.replace(/^,+/, '').split(',');
             imageToCheck = GNN_ARTICLE_IMG_URL_PREFIX + images[0] + '.png';
             // only set the image if the file is online and working
             await fetch(imageToCheck).then((response) => {

@@ -1,6 +1,8 @@
 # BOT RELATED
 servers
 newest-post.txt
+token.txt
+galnet-news-discord-bot-config.json
 
 # MACOS
 .DS_Store
