@@ -56,7 +56,7 @@ const ED_FRONTEND_URL = 'https://www.' + ED_DOMAIN + '/';
 const ED_BACKEND_URL = 'https://cms.' + ED_DOMAIN + '/';
 const ED_COMMUNITY_URL = 'https://community.' + ED_DOMAIN + '/';
 const ED_NODE_URL_PREFIX = ED_BACKEND_URL + 'node/';
-const GNN_ARTICLE_URL_PREFIX = ED_FRONTEND_URL + 'news/galnet/article/';
+const GNN_ARTICLE_URL_PREFIX = ED_FRONTEND_URL + 'news/galnet/';
 const GNN_ARTICLE_IMG_URL_PREFIX = 'https://hosting.zaonce.net/elite-dangerous/galnet/';
 const GNN_ARCHIVE_URL_PREFIX = ED_COMMUNITY_URL + 'de/galnet/uid/';
 const GNN_RSS_URL = ED_BACKEND_URL + 'galnet.rss';
@@ -540,10 +540,11 @@ async function createArticlePost(msg, post) {
     let postGuidFormat = await fetch(ED_BACKEND_URL + ED_JSON_API_URL_PREFIX + FILTER_FIELD_GALNET_GUID + postGUIDstring);
     //console.log(ED_BACKEND_URL + ED_JSON_API_URL_PREFIX + FILTER_FIELD_GALNET_GUID + postGUIDstring);
     postGuidJson = await postGuidFormat.json();
-    //console.log(postGuidJson);
     post = postGuidJson.data[0].attributes;
-
-    console.log(post.field_galnet_image);
+    
+    //console.log(postNIDJson);
+    
+    //console.log(post.field_galnet_image);
     //>>>>NEU
 
     let serverId = msg ? (msg.guild ? msg.guild.id : null) : null;
@@ -574,14 +575,14 @@ async function createArticlePost(msg, post) {
         let postGUID = postNodeData.field_galnet_guid[0].value;
         // need to remove langcode from end if matched
         if (postGUID.endsWith(postLangCode)) postGUID = postGUID.slice(0, -(postLangCode.length));
-        let postArchiveURL = GNN_ARCHIVE_URL_PREFIX + postGUID;
+        let postArchiveURL = GNN_ARCHIVE_URL_PREFIX + postGUID.slice(0, -2);
         
         // start creating the embed
         const embed = new Discord.MessageEmbed()
           .setColor(MAIN_BOT_COLOR)
           .setAuthor(post.date)
           .setTitle('__' + title + '__')
-          .setURL(GNN_ARTICLE_URL_PREFIX + post.slug)
+          .setURL(GNN_ARTICLE_URL_PREFIX + postNIDJson.data[0].attributes.field_slug)//default: post.slug
           .setFooter(moment(post.date, 'DD MMM YYYY').subtract(REAL_TO_GAME_YEAR_DIFF, 'y').format('LL') + ' UTC', BOT_FOOTER_IMAGE);
 
         // conditionally set image if there is one, else use a specific image
