@@ -538,7 +538,7 @@ async function createArticlePost(msg, post) {
     postNIDJson = await postNIDFormat.json();
     postGUIDstring = postNIDJson.data[0].attributes.field_galnet_guid.toString().slice(0, -2) + "de";
     let postGuidFormat = await fetch(ED_BACKEND_URL + ED_JSON_API_URL_PREFIX + FILTER_FIELD_GALNET_GUID + postGUIDstring);
-    //console.log(ED_BACKEND_URL + ED_JSON_API_URL_PREFIX + FILTER_FIELD_GALNET_GUID + postGUIDstring);
+    console.log(ED_BACKEND_URL + ED_JSON_API_URL_PREFIX + FILTER_FIELD_GALNET_GUID + postGUIDstring);
     postGuidJson = await postGuidFormat.json();
     post = postGuidJson.data[0].attributes;
     
@@ -580,10 +580,10 @@ async function createArticlePost(msg, post) {
         // start creating the embed
         const embed = new Discord.MessageEmbed()
           .setColor(MAIN_BOT_COLOR)
-          .setAuthor(post.date)
+          .setAuthor(post.field_galnet_date)
           .setTitle('__' + title + '__')
           .setURL(GNN_ARTICLE_URL_PREFIX + postNIDJson.data[0].attributes.field_slug)//default: post.slug
-          .setFooter(moment(post.date, 'DD MMM YYYY').subtract(REAL_TO_GAME_YEAR_DIFF, 'y').format('LL') + ' UTC', BOT_FOOTER_IMAGE);
+          .setFooter(moment(post.field_galnet_date, 'DD MMM YYYY').subtract(REAL_TO_GAME_YEAR_DIFF, 'y').format('LL') + ' UTC', BOT_FOOTER_IMAGE);
 
         // conditionally set image if there is one, else use a specific image
         let imageToCheck;
